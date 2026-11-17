@@ -38,6 +38,7 @@ public final class SocialNetworkUserImpl<U extends User> extends UserImpl implem
      *
      * think of what type of keys and values would best suit the requirements
      */
+    private Map<String, Set<U>> followed = new HashMap<>();
 
     /*
      * [CONSTRUCTORS]
@@ -50,26 +51,30 @@ public final class SocialNetworkUserImpl<U extends User> extends UserImpl implem
      * - username
      * - age and every other necessary field
      */
+
     /**
      * Builds a user participating in a social network.
      *
      * @param name
-     *            the user firstname
+     *                the user firstname
      * @param surname
-     *            the user lastname
+     *                the user lastname
      * @param userAge
-     *            user's age
+     *                user's age
      * @param user
-     *            alias of the user, i.e. the way a user is identified on an
-     *            application
+     *                alias of the user, i.e. the way a user is identified on an
+     *                application
      */
-    public SocialNetworkUserImpl(final String name, final String surname, final String user, final int userAge) {
-        super(null, null, null, 0);
+    public SocialNetworkUserImpl(final String firstName, final String lastName, final String user, final Integer age) {
+        super(firstName, lastName, user, age);
     }
 
     /*
      * 2) Define a further constructor where the age defaults to -1
      */
+    public SocialNetworkUserImpl(final String firstName, final String lastName, final String user) {
+        super(firstName, lastName, user, -1);
+    }
 
     /*
      * [METHODS]
@@ -77,8 +82,14 @@ public final class SocialNetworkUserImpl<U extends User> extends UserImpl implem
      * Implements the methods below
      */
     @Override
-    public boolean addFollowedUser(final String circle, final U user) {
-        return false;
+    public boolean addFollowedUser(final String group, final U user) {
+        if (this.getFollowedUsers().contains(user)) {
+            return false;
+        }
+        if (!this.followed.containsKey(group)) {
+            this.followed.put(group, new HashSet<>());
+        }
+        return this.followed.get(group).add(user);
     }
 
     /**
@@ -86,13 +97,39 @@ public final class SocialNetworkUserImpl<U extends User> extends UserImpl implem
      * [NOTE] If no group with groupName exists yet, this implementation must
      * return an empty Collection.
      */
+    // @Override
+    // public Collection<U> getFollowedUsersInGroup(final String groupName) {
+    // Collection<U> followedUserInSpecificGroup = new HashSet<>();
+    // for (String circleName : this.followed.keySet()) {
+    // if (circleName.equals(groupName)) {
+    // followedUserInSpecificGroup.addAll(this.followed.get(circleName));
+    // }
+    // }
+    // return followedUserInSpecificGroup;
+    // }
     @Override
     public Collection<U> getFollowedUsersInGroup(final String groupName) {
-        return null;
+        final Collection<U> usersInGroup = this.followed.get(groupName);
+        if (usersInGroup != null) {
+            return new HashSet<>(usersInGroup);
+        }
+        return Collections.emptySet();
     }
 
+    // @Override
+    // public List<U> getFollowedUsers() {
+    // List<U> followedUsers = new ArrayList<>();
+    // for (String circleName : this.followed.keySet()) {
+    // followedUsers.addAll(this.followed.get(circleName));
+    // }
+    // return followedUsers;
+    // }
     @Override
     public List<U> getFollowedUsers() {
-        return null;
+        final List<U> followedUsers = new ArrayList<>();
+        for (final Set<U> circleUsers : this.followed.values()) {
+            followedUsers.addAll(circleUsers);
+        }
+        return followedUsers;
     }
 }
