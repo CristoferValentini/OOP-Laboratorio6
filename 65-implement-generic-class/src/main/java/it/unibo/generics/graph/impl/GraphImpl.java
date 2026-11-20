@@ -1,13 +1,11 @@
 package it.unibo.generics.graph.impl;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Queue;
 import java.util.Set;
 import it.unibo.generics.graph.api.Graph;
 
@@ -49,41 +47,38 @@ public class GraphImpl<N> implements Graph<N> {
 
     @Override
     public List<N> getPath(N source, N target) {
-        if (source == null || target == null
-                || !this.graph.containsKey(source)
+        boolean isContained = false;
+        if (Objects.isNull(source) || Objects.isNull(target) || !this.graph.containsKey(source)
                 || !this.graph.containsKey(target)) {
-            return Collections.emptyList();
+            return new ArrayList<>();
         }
-        Queue<N> queue = new LinkedList<>();
-        Map<N, N> parentMap = new HashMap<>();
-
-        queue.add(source);
-        parentMap.put(source, null);
-
-        while (!queue.isEmpty()) {
-            N current = queue.poll();
-
-            if (current.equals(target)) {
-                break;
+        for (Set<N> valueSet : this.graph.values()) {
+            if (valueSet.contains(target)) {
+                isContained = true;
             }
+        }
+        if (!isContained) {
+            return new ArrayList<>();
+        }
+        return result(source, target);
+    }
 
-            for (N neighbor : this.graph.get(current)) {
-                if (!parentMap.containsKey(neighbor)) {
-                    parentMap.put(neighbor, current);
-                    queue.add(neighbor);
+    private List<N> result(N source, N target) {
+        List<N> resultList = new ArrayList<>();
+        if (this.graph.get(source).contains(target)) {
+            resultList.addFirst(target);
+            resultList.addFirst(source);
+            return resultList;
+        } else {
+            for (N value : this.graph.get(source)) {
+                List<N> list = (result(value, target));
+                int size = list.size();
+                if (size != 0) {
+                    list.addFirst(source);
+                    return list;
                 }
             }
         }
-
-        if (!parentMap.containsKey(target)) {
-            return Collections.emptyList();
-        }
-
-        LinkedList<N> path = new LinkedList<>();
-        for (N step = target; step != null; step = parentMap.get(step)) {
-            path.addFirst(step);
-        }
-
-        return path;
+        return resultList;
     }
 }
